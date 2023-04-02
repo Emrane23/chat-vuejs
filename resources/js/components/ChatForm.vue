@@ -8,6 +8,7 @@
       placeholder="Type your message here..."
       v-model="newMessage"
       @keyup.enter="sendMessage"
+      @keydown = "sendTypingEvent"
     />
     <span class="input-group-btn">
       <button class="btn btn-primary btn-sm" id="btn-chat" @click="sendMessage">
@@ -15,11 +16,14 @@
       </button>
     </span>
   </div>
+  <span class="text-muted" v-if="userTyper">{{ userTyper.name }} is typing...</span>
 </template>
 <script>
+
 export default {
   //Takes the "user" props from <chat-form> … :user="{{ Auth::user() }}"></chat-form> in the parent chat.blade.php.
-  props: ["user"],
+  props: ["user","userTyper"],
+  emits: ["messagesent"], 
   data() {
     return {
       newMessage: "",
@@ -37,6 +41,9 @@ export default {
       this.newMessage = "";
       
     },
+    sendTypingEvent(){
+      Echo.join('chat').whisper('typing',this.user)
+    }
   },
 };
 </script>

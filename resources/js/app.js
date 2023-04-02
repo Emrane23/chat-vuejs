@@ -27,6 +27,12 @@ app.component('chat-form', ChatFormComponent);
 import App from './components/App.vue';
 app.component('App', App);
 
+import ListUsers from './components/ListUsers.vue';
+app.component('list-users', ListUsers);
+
+import ChatPrivate from './components/ChatPrivate.vue';
+app.component('chat-private', ChatPrivate);
+
 
 
 /**

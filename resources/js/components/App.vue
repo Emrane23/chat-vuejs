@@ -1,38 +1,51 @@
 <template>
-  <div class="card">
-    <div class="card-header">Chats</div>
+  <div class="row">
+    <div class="col-8">
+      <div class="card card-default">
+        <div class="card-header">Group chat</div>
 
-    <div
-      class="card-body"
-      @scroll="onScroll"
-      ref="card-messages"
-      style="overflow-y: scroll; height: 300px"
-    >
-      <div class="text-center">
         <div
-          v-if="loading"
-          class="spinner-border spinner-border-sm text-secondary"
-          role="status"
+          class="card-body p-0"
+          @scroll="onScroll"
+          ref="card-messages"
+          style="overflow-y: scroll; height: 300px"
         >
-          <span class="sr-only"></span>
+          <div class="text-center">
+            <div
+              v-if="loading"
+              class="spinner-border spinner-border-sm text-secondary"
+              role="status"
+            >
+              <span class="sr-only"></span>
+            </div>
+          </div>
+          <chat-messages :messages="messages" :user="user"></chat-messages>
+        </div>
+        <div class="card-footer">
+          <chat-form
+            v-on:messagesent="addMessage"
+            :user="user"
+            :userTyper="userTyper"
+          ></chat-form>
         </div>
       </div>
-      <chat-messages :messages="messages" :user="user"></chat-messages>
     </div>
-    <div class="card-footer">
-      <chat-form v-on:messagesent="addMessage" :user="user"></chat-form>
-    </div>
+    <list-users></list-users>
   </div>
 </template>
 
 <script>
 export default {
   props: ["user"],
+  emits: ["messagesent"],
+
   data() {
     return {
       messages: "",
       paginate: 5,
       loading: false,
+      userTyper: false,
+      typingTimer: false,
     };
   },
   mounted() {
@@ -42,45 +55,59 @@ export default {
   created() {
     this.fetchMessages();
 
-    window.Echo.private("chat").listen("MessageSent", (e) => {
-      this.messages.push({
-        message: e.message.message,
-        user: e.user,
-      });
-      document.querySelectorAll(".messages").forEach((item) => {
-        item.classList.remove("new");
-      });
-      let newLength = this.messages.length - 1;
-
-      if (!("Notification" in window)) {
-        alert("Web Notification is not supported");
-        return;
-      }
-      if (e.user.name != this.user.name) {
-        Notification.requestPermission((permission) => {
-          let notification = new Notification("New message alert!", {
-            body: e.user?.name + " has sent a message", // content for the alert
-            icon: "https://www.svgrepo.com/show/31480/notification-bell.svg", // optional image url
-          });
-
-          // link to page on clicking the notification
-          notification.onclick = () => {
-            window.open(window.location.href);
-          };
+    Echo.join("chat")
+      .listen("MessageSent", (e) => {
+        console.log(e);
+        this.messages.push({
+          message: e.message.message,
+          user: e.user,
         });
-      }
-      this.scrollBottom();
-      setTimeout(() => {
-        document.querySelectorAll(".messages")[newLength].classList.add("new");
-      }, "300");
-    });
+        document.querySelectorAll(".messages").forEach((item) => {
+          item.classList.remove("new");
+        });
+        let newLength = this.messages.length - 1;
+        let audio = new Audio("/notification/notification.mp3");
+
+        if (!("Notification" in window)) {
+          alert("Web Notification is not supported");
+          return;
+        }
+        if (e.user.name != this.user.name) {
+          Notification.requestPermission((permission) => {
+            let notification = new Notification("New message alert!", {
+              body: e.user?.name + " has sent a message", // content for the alert
+              icon: "https://www.svgrepo.com/show/31480/notification-bell.svg", // optional image url
+            });
+
+            // link to page on clicking the notification
+            notification.onclick = () => {
+              window.open(window.location.href);
+            };
+          });
+        }
+        console.log("received");
+        audio.play();
+        this.scrollBottom();
+        setTimeout(() => {
+          document
+            .querySelectorAll(".messages")
+            [newLength].classList.add("new");
+        }, "300");
+      })
+      .listenForWhisper("typing", (user) => {
+        this.userTyper = user;
+        if (this.typingTimer) {
+          clearTimeout(this.typingTimer);
+        }
+        this.typingTimer = setTimeout(() => {
+          this.userTyper = false;
+        }, "3000");
+      });
   },
 
   methods: {
     fetchMessages() {
-      //GET request to the messages route in our Laravel server to fetch all the messages
       axios.get("/messages").then((response) => {
-        //Save the response in the messages array to display on the chat view
         this.messages = response.data;
       });
     },
@@ -111,7 +138,7 @@ export default {
     //Receives the message that was emitted from the ChatForm Vue component
     addMessage(message) {
       this.messages.push(message);
-        axios.post("/messages", message).then((response) => {});
+      axios.post("/messages", message).then((response) => {});
       this.scrollBottom();
     },
     onScroll(e) {

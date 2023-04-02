@@ -24,3 +24,11 @@ Broadcast::channel('chat', function ($user) {
     return Auth::check();
 });
 
+Broadcast::channel('privatechat.{receiverid}.{senderid}', function ($user,$receiverid,$senderid) {
+    if (Auth::check() && $receiverid == Auth::user()->id) {
+        return true;
+    }else {
+        return false;
+    }
+});
+

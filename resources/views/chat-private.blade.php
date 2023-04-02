@@ -2,6 +2,6 @@
  @extends('layouts.app')
  @section('content')
      <div class="container">
-             <App :user="{{ Auth::user() }}"></App>
+             <chat-private :user="{{ Auth::user() }}" :receiverid="{{ request()->get('receiverid') }}" > </chat-private>
      </div>
  @endsection

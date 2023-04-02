@@ -27,6 +27,7 @@
     "dependencies": {
         "@vueuse/core": "^9.13.0",
         "laravel-echo": "^1.15.0",
-        "pusher-js": "^8.0.2"
+        "pusher-js": "^4.4.0",
+        "vue3-emoji-picker": "^1.1.7"
     }
 }
