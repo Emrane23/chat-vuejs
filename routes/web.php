@@ -26,6 +26,7 @@ Route::get('/messages', [App\Http\Controllers\ChatsController::class, 'fetchMess
 Route::get('/privatemessages/{receiverid}', [App\Http\Controllers\ChatsController::class, 'fetchPrivateMessages']);
 Route::get('/getreceiver/{receiverid}', [App\Http\Controllers\ChatsController::class, 'getReceiver']);
 Route::get('/showmore/{paginate}', [App\Http\Controllers\ChatsController::class, 'showMore']);
+Route::get('/showmoreprivate/{paginate}/{receiverid}', [App\Http\Controllers\ChatsController::class, 'showMorePrivate']);
 Route::post('/messages', [App\Http\Controllers\ChatsController::class, 'sendMessage']);
 Route::get('/users', [App\Http\Controllers\ChatsController::class, 'getUsers']);
 Route::post('/privatemessages/{receieverid}', [App\Http\Controllers\ChatsController::class, 'sendPrivateMessage']);

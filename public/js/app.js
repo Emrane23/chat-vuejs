@@ -19999,9 +19999,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
 /* harmony export */ });
-// import EmojiPicker from 'vue3-emoji-picker';
-// import 'vue3-emoji-picker/css';
-
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = ({
   props: ["user", "receiverid"],
   // emits: ["messagesent"],
@@ -20011,25 +20008,19 @@ __webpack_require__.r(__webpack_exports__);
       newMessage: "",
       receiver: "",
       paginate: 5,
-      loading: false,
       userTyper: false,
-      typingTimer: false
+      typingTimer: false,
+      loading: false
     };
   },
-  // components: {
-  //   EmojiPicker,
-  // },
   mounted: function mounted() {
     this.scrollBottom();
     this.getReceiver();
   },
-  //Upon initialisation, run fetchMessages().
   created: function created() {
     var _this = this;
     this.fetchMessages();
     Echo.join("privatechat.".concat(this.user.id, ".").concat(this.receiverid)).listen("PrivateMessageSent", function (e) {
-      // console.log("event work");
-      console.log(e);
       _this.messages.push({
         message: e.message.message,
         sender: e.user
@@ -20038,7 +20029,7 @@ __webpack_require__.r(__webpack_exports__);
         item.classList.remove("new");
       });
       var newLength = _this.messages.length - 1;
-      var audio = new Audio('/notification/notification.mp3');
+      var audio = new Audio("/notification/notification.mp3");
       if (!("Notification" in window)) {
         alert("Web Notification is not supported");
         return;
@@ -20063,32 +20054,19 @@ __webpack_require__.r(__webpack_exports__);
       setTimeout(function () {
         document.querySelectorAll(".messages")[newLength].classList.add("new");
       }, "300");
-    }); /* .listenForWhisper('typing', user => {
-        console.log("étyping");
-        this.userTyper = user;
-        console.log("type");
-        if (this.typingTimer) {
-          clearTimeout(this.typingTimer);
-        }
-         this.typingTimer = setTimeout(() => {
-          this.userTyper = false;
-        }, "3000");
-        }); */
+    }).listenForWhisper("typing", function (user) {
+      _this.userTyper = user;
+      if (_this.typingTimer) {
+        clearTimeout(_this.typingTimer);
+      }
+      _this.typingTimer = setTimeout(function () {
+        _this.userTyper = false;
+      }, "3000");
+    });
   },
-
   methods: {
-    onSelectEmoji: function onSelectEmoji(emoji) {
-      console.log(emoji);
-      /*
-        // result
-        { 
-            i: "😚", 
-            n: ["kissing face"], 
-            r: "1f61a", // with skin tone
-            t: "neutral", // skin tone
-            u: "1f61a" // without tone
-        }
-        */
+    sendTypingEvent: function sendTypingEvent() {
+      Echo.join("privatechat.".concat(this.receiverid, ".").concat(this.user.id)).whisper("typing", this.user);
     },
     sendMessage: function sendMessage() {
       this.messages.push({
@@ -20109,9 +20087,7 @@ __webpack_require__.r(__webpack_exports__);
     },
     fetchMessages: function fetchMessages() {
       var _this3 = this;
-      //GET request to the messages route in our Laravel server to fetch all the messages
       axios.get("/privatemessages/".concat(this.receiverid)).then(function (response) {
-        //Save the response in the messages array to display on the chat view
         _this3.messages = response.data;
       });
     },
@@ -20127,7 +20103,8 @@ __webpack_require__.r(__webpack_exports__);
       var _this4 = this;
       this.paginate += 5;
       this.loading = true;
-      axios.get("/showmore/".concat(this.paginate)).then(function (response) {
+      axios.get("/showmoreprivate/".concat(this.paginate, "/").concat(this.receiverid)).then(function (response) {
+        console.log(response);
         _this4.messages = response.data;
         _this4.loading = false;
       })["catch"](function (err) {
@@ -20140,7 +20117,7 @@ __webpack_require__.r(__webpack_exports__);
         offsetHeight = _e$target.offsetHeight,
         scrollHeight = _e$target.scrollHeight;
       if (scrollTop + offsetHeight >= scrollHeight) {
-        console.log("bottom!");
+        // console.log("bottom!");
       }
       if (scrollTop == 0) {
         this.showMore();
@@ -20400,6 +20377,10 @@ var _hoisted_11 = {
 var _hoisted_12 = {
   "class": "input-group-btn"
 };
+var _hoisted_13 = {
+  key: 0,
+  "class": "text-muted"
+};
 function render(_ctx, _cache, $props, $setup, $data, $options) {
   return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h3", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.receiver.name), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
     "class": "card-body",
@@ -20426,14 +20407,17 @@ function render(_ctx, _cache, $props, $setup, $data, $options) {
     }),
     onKeyup: _cache[2] || (_cache[2] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.withKeys)(function () {
       return $options.sendMessage && $options.sendMessage.apply($options, arguments);
-    }, ["enter"]))
+    }, ["enter"])),
+    onKeydown: _cache[3] || (_cache[3] = function () {
+      return $options.sendTypingEvent && $options.sendTypingEvent.apply($options, arguments);
+    })
   }, null, 544 /* HYDRATE_EVENTS, NEED_PATCH */), [[vue__WEBPACK_IMPORTED_MODULE_0__.vModelText, $data.newMessage]]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_12, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("button", {
     "class": "btn btn-primary btn-sm",
     id: "btn-chat",
-    onClick: _cache[3] || (_cache[3] = function () {
+    onClick: _cache[4] || (_cache[4] = function () {
       return $options.sendMessage && $options.sendMessage.apply($options, arguments);
     })
-  }, " Send ")])])])]);
+  }, " Send ")])]), $data.userTyper ? ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("span", _hoisted_13, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)($data.userTyper.name) + " is typing...", 1 /* TEXT */)) : (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)("v-if", true)])]);
 }
 
 /***/ }),

@@ -60,6 +60,23 @@ class ChatsController extends Controller
         return $messages;
     }
 
+    public function showMorePrivate($paginate , $receiverid)
+    {
+        $messages = array();
+        $records = PrivateMessage::where(function ($query) use ($receiverid) {
+            $query->where('sender_id',Auth::user()->id)
+                  ->orWhere('sender_id', $receiverid);
+        }
+            )->where(function ($query) use ($receiverid){
+                $query->where('receiver_id',$receiverid)
+                      ->orWhere('receiver_id',Auth::user()->id);
+            })->with(["sender","receiver"])->get()->sortByDesc('created_at')->take($paginate);
+        foreach ($records as $key => $value) {
+            array_unshift($messages,$value);
+        }
+        return $messages;
+    }
+
     public function sendMessage(Request $request)
     {
         $user = Auth::user();

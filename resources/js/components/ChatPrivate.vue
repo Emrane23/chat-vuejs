@@ -43,28 +43,27 @@
           placeholder="Type your message here..."
           v-model="newMessage"
           @keyup.enter="sendMessage"
+          @keydown="sendTypingEvent"
         />
-        
+
         <span class="input-group-btn">
-            <button
+          <button
             class="btn btn-primary btn-sm"
             id="btn-chat"
             @click="sendMessage"
-            >
+          >
             Send
-        </button>
-    </span>
-    
+          </button>
+        </span>
       </div>
+      <span class="text-muted" v-if="userTyper"
+        >{{ userTyper.name }} is typing...</span
+      >
     </div>
   </div>
 </template>
   
   <script>
-  // import EmojiPicker from 'vue3-emoji-picker';
-  // import 'vue3-emoji-picker/css';
-  
-
 export default {
   props: ["user", "receiverid"],
   // emits: ["messagesent"],
@@ -75,26 +74,20 @@ export default {
       newMessage: "",
       receiver: "",
       paginate: 5,
-      loading: false,
       userTyper: false,
       typingTimer: false,
+      loading: false,
     };
   },
-  // components: {
-  //   EmojiPicker,
-  // },
   mounted() {
     this.scrollBottom();
     this.getReceiver();
   },
-  //Upon initialisation, run fetchMessages().
   created() {
     this.fetchMessages();
 
-      Echo.join(`privatechat.${this.user.id}.${this.receiverid}`)
+    Echo.join(`privatechat.${this.user.id}.${this.receiverid}`)
       .listen("PrivateMessageSent", (e) => {
-        // console.log("event work");
-        console.log(e);
         this.messages.push({
           message: e.message.message,
           sender: e.user,
@@ -103,7 +96,7 @@ export default {
           item.classList.remove("new");
         });
         let newLength = this.messages.length - 1;
-        let audio =new Audio ('/notification/notification.mp3');
+        let audio = new Audio("/notification/notification.mp3");
 
         if (!("Notification" in window)) {
           alert("Web Notification is not supported");
@@ -125,35 +118,29 @@ export default {
         audio.play();
         this.scrollBottom();
         setTimeout(() => {
-          document.querySelectorAll(".messages")[newLength].classList.add("new");
+          document
+            .querySelectorAll(".messages")
+            [newLength].classList.add("new");
         }, "300");
-      })/* .listenForWhisper('typing', user => {
-        console.log("étyping");
+      })
+      .listenForWhisper("typing", (user) => {
         this.userTyper = user;
-        console.log("type");
         if (this.typingTimer) {
           clearTimeout(this.typingTimer);
         }
-         this.typingTimer = setTimeout(() => {
+        this.typingTimer = setTimeout(() => {
           this.userTyper = false;
         }, "3000");
-      }); */
+      });
   },
 
   methods: {
-     onSelectEmoji(emoji) {
-  console.log(emoji)
-  /*
-    // result
-    { 
-        i: "😚", 
-        n: ["kissing face"], 
-        r: "1f61a", // with skin tone
-        t: "neutral", // skin tone
-        u: "1f61a" // without tone
-    }
-    */
-},
+    sendTypingEvent() {
+      Echo.join(`privatechat.${this.receiverid}.${this.user.id}`).whisper(
+        "typing",
+        this.user
+      );
+    },
     sendMessage() {
       this.messages.push({
         sender: this.user,
@@ -173,9 +160,7 @@ export default {
       });
     },
     fetchMessages() {
-      //GET request to the messages route in our Laravel server to fetch all the messages
       axios.get(`/privatemessages/${this.receiverid}`).then((response) => {
-        //Save the response in the messages array to display on the chat view
         this.messages = response.data;
       });
     },
@@ -194,8 +179,9 @@ export default {
       this.paginate += 5;
       this.loading = true;
       axios
-        .get(`/showmore/${this.paginate}`)
+        .get(`/showmoreprivate/${this.paginate}/${this.receiverid}`)
         .then((response) => {
+          console.log(response);
           this.messages = response.data;
           this.loading = false;
         })
@@ -206,7 +192,7 @@ export default {
     onScroll(e) {
       const { scrollTop, offsetHeight, scrollHeight } = e.target;
       if (scrollTop + offsetHeight >= scrollHeight) {
-        console.log("bottom!");
+        // console.log("bottom!");
       }
       if (scrollTop == 0) {
         this.showMore();
