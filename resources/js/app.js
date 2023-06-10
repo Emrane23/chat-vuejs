@@ -33,6 +33,9 @@ app.component('list-users', ListUsers);
 import ChatPrivate from './components/ChatPrivate.vue';
 app.component('chat-private', ChatPrivate);
 
+import TestComponent from './components/TestComponent.vue';
+app.component('test', TestComponent);
+
 
 
 /**
